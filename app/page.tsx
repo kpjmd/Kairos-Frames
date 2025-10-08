@@ -54,20 +54,23 @@ export default function KairosMiniApp() {
   useEffect(() => {
     const load = async () => {
       try {
-        // Add timeout to prevent infinite loading
-        const timeoutId = setTimeout(() => {
-          console.warn('SDK initialization timeout - continuing without SDK');
-          setIsSDKLoaded(true);
-        }, 3000); // 3 second timeout
-
-        await sdk.actions.ready();
-        clearTimeout(timeoutId);
-        const ctx = sdk.context;
-        setContext(ctx);
-        setIsSDKLoaded(true);
+        // Race between SDK ready and timeout
+        await Promise.race([
+          sdk.actions.ready().then(() => {
+            const ctx = sdk.context;
+            setContext(ctx);
+            console.log('Farcaster SDK initialized', ctx);
+          }),
+          new Promise((resolve) => setTimeout(() => {
+            console.warn('SDK initialization timeout - continuing without Farcaster context');
+            resolve(null);
+          }, 2000))
+        ]);
       } catch (error) {
         console.error('SDK initialization error:', error);
-        setIsSDKLoaded(true); // Continue anyway for development
+      } finally {
+        // Always set loaded to true so app can render
+        setIsSDKLoaded(true);
       }
     };
     load();
