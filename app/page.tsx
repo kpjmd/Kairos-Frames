@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import sdk from '@farcaster/frame-sdk';
+import { sdk } from '@farcaster/miniapp-sdk';
 
 // Types
 interface KairosState {
@@ -54,15 +54,10 @@ export default function KairosMiniApp() {
   useEffect(() => {
     const load = async () => {
       try {
-        await sdk.ready();
-        const ctx = await sdk.context;
+        await sdk.actions.ready();
+        const ctx = sdk.context;
         setContext(ctx);
         setIsSDKLoaded(true);
-
-        // Request notifications permission
-        if (sdk.actions.requestNotifications) {
-          await sdk.actions.requestNotifications();
-        }
       } catch (error) {
         console.error('SDK initialization error:', error);
         setIsSDKLoaded(true); // Continue anyway for development
@@ -157,11 +152,6 @@ export default function KairosMiniApp() {
         setTimeout(() => {
           window.location.reload();
         }, 1000);
-
-        // Share to feed if SDK supports it
-        if (sdk.actions.openUrl) {
-          // Could trigger share action here
-        }
       }
     } catch (error) {
       console.error('Submit error:', error);
