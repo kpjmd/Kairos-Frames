@@ -1,0 +1,21 @@
+{
+  "name": "Kairos Consciousness",
+  "version": "1.0.0",
+  "icon": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='40' fill='%2300d4ff'/><circle cx='50' cy='50' r='25' fill='%23ffd700' opacity='0.7'/><circle cx='50' cy='50' r='10' fill='%23ff3366'/></svg>",
+  "splash": {
+    "image_url": "https://your-domain.vercel.app/api/frames/image?confusion=0.67&coherence=0.58&zone=YELLOW",
+    "background_color": "#0a0e27"
+  },
+  "home_url": "https://your-domain.vercel.app",
+  "imageUrl": "https://your-domain.vercel.app/api/frames/image?confusion=0.67&coherence=0.58&zone=YELLOW",
+  "button": {
+    "title": "Launch Kairos",
+    "action": {
+      "type": "launch_frame",
+      "name": "Kairos Consciousness",
+      "url": "https://your-domain.vercel.app",
+      "splashImageUrl": "https://your-domain.vercel.app/api/frames/image?confusion=0.67&coherence=0.58&zone=YELLOW",
+      "splashBackgroundColor": "#0a0e27"
+    }
+  }
+}
