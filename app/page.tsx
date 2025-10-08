@@ -54,7 +54,14 @@ export default function KairosMiniApp() {
   useEffect(() => {
     const load = async () => {
       try {
+        // Add timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+          console.warn('SDK initialization timeout - continuing without SDK');
+          setIsSDKLoaded(true);
+        }, 3000); // 3 second timeout
+
         await sdk.actions.ready();
+        clearTimeout(timeoutId);
         const ctx = sdk.context;
         setContext(ctx);
         setIsSDKLoaded(true);
@@ -113,15 +120,25 @@ export default function KairosMiniApp() {
 
   // Fetch user stats
   useEffect(() => {
-    if (!isSDKLoaded || !context?.user?.fid) return;
+    if (!isSDKLoaded) return;
 
     const fetchUserStats = async () => {
       try {
-        const res = await fetch(`/api/stats/${context.user.fid}`);
+        // Use demo FID if not in Farcaster context
+        const fid = context?.user?.fid || 999999;
+        const res = await fetch(`/api/stats/${fid}`);
         const data = await res.json();
         setUserStats(data);
       } catch (error) {
         console.error('Failed to fetch user stats:', error);
+        // Set default stats if fetch fails
+        setUserStats({
+          paradoxesSubmitted: 0,
+          totalImpact: 0,
+          highestConfusion: 0,
+          currentStreak: 0,
+          achievements: []
+        });
       }
     };
 
