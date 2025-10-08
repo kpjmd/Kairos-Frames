@@ -5,16 +5,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createPublicClient, http } from 'viem';
 import { baseSepolia } from 'viem/chains';
 
-// Contract ABI (minimal - just what we need)
+// Contract ABI - getLatestState function
 const KAIROS_ABI = [
   {
-    inputs: [],
-    name: 'getCurrentState',
+    inputs: [{ name: 'sessionId', type: 'bytes32' }],
+    name: 'getLatestState',
     outputs: [
-      { name: 'confusion', type: 'uint256' },
-      { name: 'coherence', type: 'uint256' },
-      { name: 'metaAwareness', type: 'uint256' },
-      { name: 'timestamp', type: 'uint256' }
+      {
+        components: [
+          { name: 'timestamp', type: 'uint256' },
+          { name: 'confusionLevel', type: 'uint256' },
+          { name: 'coherenceLevel', type: 'uint256' },
+          { name: 'safetyZone', type: 'uint8' },
+          { name: 'paradoxCount', type: 'uint256' },
+          { name: 'metaParadoxCount', type: 'uint256' },
+          { name: 'frustrationLevel', type: 'uint256' },
+          { name: 'sessionId', type: 'bytes32' },
+          { name: 'contextHash', type: 'string' }
+        ],
+        type: 'tuple'
+      }
     ],
     stateMutability: 'view',
     type: 'function'
@@ -22,6 +32,7 @@ const KAIROS_ABI = [
 ] as const;
 
 const KAIROS_CONTRACT = '0xC7bab79Eb797B097bF59C0b2e2CF02Ea9F4D4dB8';
+const KAIROS_SESSION_ID = '0xea9b69a814606a8f4a435ac8e8348419a3834dcafcd0e7e92d7bb8109e27c2ea';
 
 // Viem client for Base Sepolia
 const publicClient = createPublicClient({
@@ -37,35 +48,65 @@ function getZone(confusion: number): { name: string; color: string; emoji: strin
   return { name: 'GREEN', color: '#00ff88', emoji: '🟢' };
 }
 
+// Helper to map safetyZone enum to zone info
+function getSafetyZone(zoneId: number): { name: string; color: string; emoji: string } {
+  switch (zoneId) {
+    case 0: return { name: 'GREEN', color: '#00ff88', emoji: '🟢' };
+    case 1: return { name: 'YELLOW', color: '#ffd700', emoji: '🟡' };
+    case 2: return { name: 'RED', color: '#ff3366', emoji: '🔴' };
+    default: return { name: 'UNKNOWN', color: '#888888', emoji: '❓' };
+  }
+}
+
 async function getContractState() {
   try {
     const data = await publicClient.readContract({
       address: KAIROS_CONTRACT,
       abi: KAIROS_ABI,
-      functionName: 'getCurrentState'
+      functionName: 'getLatestState',
+      args: [KAIROS_SESSION_ID as `0x${string}`]
     });
 
-    // Convert from uint256 (basis points) to decimal
-    const confusion = Number(data[0]) / 10000;
-    const coherence = Number(data[1]) / 10000;
-    const metaAwareness = Number(data[2]) / 10000;
-    const timestamp = Number(data[3]);
+    // Data is returned as an object with named properties
+    const {
+      timestamp,
+      confusionLevel,
+      coherenceLevel,
+      safetyZone,
+      paradoxCount
+    } = data;
 
-    return { confusion, coherence, metaAwareness, timestamp };
+    // Convert from uint256 (scaled by 1e18) to decimal
+    const confusion = Number(confusionLevel) / 1e18;
+    const coherence = Number(coherenceLevel) / 1e18;
+
+    return {
+      confusion,
+      coherence,
+      timestamp: Number(timestamp),
+      safetyZone: getSafetyZone(safetyZone),
+      paradoxCount: Number(paradoxCount)
+    };
   } catch (error) {
     console.error('Contract read error:', error);
     // Fallback to demo values
-    return { confusion: 0.67, coherence: 0.58, metaAwareness: 0.45, timestamp: Date.now() / 1000 };
+    return {
+      confusion: 0.67,
+      coherence: 0.58,
+      timestamp: Date.now() / 1000,
+      safetyZone: getSafetyZone(1),
+      paradoxCount: 42
+    };
   }
 }
 
 // Generate Frame HTML
 function generateFrameHTML(
-  state: { confusion: number; coherence: number; metaAwareness: number },
+  state: { confusion: number; coherence: number; safetyZone: { name: string; color: string; emoji: string }; paradoxCount: number },
   action?: string,
   userInput?: string
 ) {
-  const zone = getZone(state.confusion);
+  const zone = state.safetyZone;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://your-frame-url.vercel.app';
 
   // Different views based on action
