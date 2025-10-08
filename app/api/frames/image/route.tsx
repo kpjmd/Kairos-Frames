@@ -1,7 +1,7 @@
-export const runtime = 'edge';
-
 import { ImageResponse } from 'next/og';
 import { NextRequest } from 'next/server';
+
+export const runtime = 'edge';
 
 function getZoneColor(zone: string): string {
   switch (zone) {
@@ -34,7 +34,8 @@ export async function GET(req: NextRequest) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(to bottom right, #0a0e27, #1a1f3a)',
+            backgroundColor: '#0a0e27',
+            backgroundImage: 'linear-gradient(to bottom right, #0a0e27, #1a1f3a)',
             padding: '60px',
           }}
         >
@@ -160,7 +161,7 @@ export async function GET(req: NextRequest) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#0a0e27',
+            backgroundColor: '#0a0e27',
             color: '#ff3366',
             fontSize: '48px',
           }}
