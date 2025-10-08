@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { sdk } from '@farcaster/miniapp-sdk';
 
 // Types
 interface KairosState {
@@ -54,6 +53,9 @@ export default function KairosMiniApp() {
   useEffect(() => {
     const load = async () => {
       try {
+        // Dynamically import SDK to avoid blocking page load
+        const { sdk } = await import('@farcaster/miniapp-sdk');
+
         // Race between SDK ready and timeout
         await Promise.race([
           sdk.actions.ready().then(() => {
